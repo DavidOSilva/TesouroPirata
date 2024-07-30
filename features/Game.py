@@ -1,0 +1,89 @@
+from models.Pirate import *
+from models.Chronometer import *
+from factory.TreasureFactory import *
+from pathlib import Path
+
+class Game():
+
+    def __init__(self, width=stts.width, height=stts.height):
+        self.running = True
+        self.clock = pygame.time.Clock()
+        self.win = pygame.display.set_mode((width, height))
+        self.menuBackground = self._setMenuBackground()
+
+    @staticmethod
+    def _setMenuBackground(imagePath=Path("assets/background/menu.png"), width=stts.width, height=stts.height):
+        sprite = pygame.image.load(imagePath)
+        return pygame.transform.scale(sprite, (width, height))
+
+    def showMenu(self):
+        self.win.blit(self.menuBackground, (0, 0))
+        # menuText = RectText("Pressione ENTER para iniciar!", [stts.width // 2 - 0.2375*stts.width, stts.height // 2 - 20])
+        # menuText._draw(self.win)
+        pygame.display.update()
+
+    def reset(self):
+        self.running = True
+
+    def run(self):
+        #Instanciando jogadores.
+        p1 = Pirate(1,
+                    [stts.margin, stts.height//2 - stts.playerSize[1]//2],
+                    Path("assets/pirate/pirateRedSprites.png"))
+        p2 = Pirate(2,
+                    [stts.width - stts.playerSize[0] - stts.margin, stts.height//2 - stts.playerSize[1]//2],
+                    Path("assets/pirate/pirateBlueSprites.png"))
+        
+        #Instancindo baú de tesouros compartilhados.
+        treasureChest = SharedChest()
+        
+        #Instanciando cada um dos tesouros.
+        exclusionZones = [p1.getRect(), p2.getRect(), treasureChest.getRect()]
+        treasures = TreasureFactory(exclusionZones).createTreasures()
+
+        #Contagem iniciada.
+        startTime = pygame.time.get_ticks()
+
+        while self.running:
+            dt = self.clock.tick(30)  # 30 FPS
+            keyState = pygame.key.get_pressed()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+            
+            #Movimentação dos jogadores.
+            keys = pygame.key.get_pressed()
+            p1.move(keys)
+            p2.move(keys)
+
+            #Coletando os tesouros.
+            p1.collect(treasures)
+            p2.collect(treasures)
+
+            #Depositar tesouros no baú.
+            p1.action(treasureChest, keyState)
+            p2.action(treasureChest, keyState)
+
+            #Desenhando elementos na tela.
+            self.win.fill(colors.sand) 
+            for treasure in treasures: treasure._draw(self.win)
+            drawables = [(treasureChest, treasureChest.getRect().y + treasureChest.getRect().height)] #Vamos ordenar para desenhar com sobreposições.
+            drawables.append((p1, p1.getRect().y + p1.getRect().height))
+            drawables.append((p2, p2.getRect().y + p2.getRect().height))
+            drawables.sort(key=lambda item: item[1]) # Ordenando elementos por posição y + height.
+            for drawable, _ in drawables: drawable._draw(self.win) # Desenhando elementos na ordem correta.
+
+            #Calculando tempo restante e desenhando na tela.
+            remainingTime = (stts.gameDuration - (pygame.time.get_ticks() - startTime)) // 1000
+            timer = Chronometer(remainingTime, "Tempo Restante:", [stts.width - 0.28*stts.width, stts.height - 0.0583*stts.height])
+            timer._draw(self.win)
+
+            pygame.display.update()
+
+            if pygame.time.get_ticks() - startTime > stts.gameDuration:
+                print("Tempo de jogo acabou! ⌛❌")
+                treasureChest.determineWinner()
+                self.running = False
+        
