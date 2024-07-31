@@ -2,7 +2,7 @@
 Tesouro Pirata é um jogo divertido onde os jogadores controlam piratas que coletam tesouros e os depositam em um baú da tripulação que é compartilhado. O objetivo é coletar o máximo de tesouros possível antes que o tempo acabe. O jogador com mais pontos vence!
 
 ## Funcionalidades
-* Movimentação do Jogador: Controle o pirata usando as teclas WASD (Jogador 1) ou as setas do teclado (Jogador 2).
+* Movimentação do Jogador: Controle ambos os piratas usando o mesmo teclado.
 * Coleta de Tesouros: Pegue os tesouros espalhados pelo mapa.
 * Depósito no Baú: Deposite os tesouros coletados no baú compartilhado.
 * Sistema de Animação: Animações suaves para movimentos dos piratas.
@@ -67,7 +67,12 @@ def action(self, SharedChest, keyState):
     - Ação: Tecla 0 (numérica)
 
 ## 📸 Screenshots
-Insira aqui algumas capturas de tela do jogo.
+<div style="text-align: center;">
+  <img src="assets/screenshots/screensho-02.png" alt="Screenshot 1" style="width: 800px;">
+  <img src="assets/screenshots/screensho-01.png" alt="Screenshot 2" style="width: 800px;">
+  <img src="assets/screenshots/screensho-03.png" alt="Screenshot 2" style="width: 800px;">
+  <img src="assets/screenshots/screensho-04.png" alt="Screenshot 2" style="width: 800px;">
+</div>
 
 ## 🚀 Como Rodar
 Siga estas etapas para configurar e executar o projeto localmente.
