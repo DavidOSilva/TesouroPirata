@@ -67,12 +67,12 @@ def action(self, SharedChest, keyState):
     - Ação: Tecla 0 (numérica)
 
 ## 📸 Screenshots
-<div style="text-align: center;">
-  <img src="assets/screenshots/screensho-02.png" alt="Screenshot 1" style="width: 800px;">
-  <img src="assets/screenshots/screensho-01.png" alt="Screenshot 2" style="width: 800px;">
-  <img src="assets/screenshots/screensho-03.png" alt="Screenshot 2" style="width: 800px;">
-  <img src="assets/screenshots/screensho-04.png" alt="Screenshot 2" style="width: 800px;">
-</div>
+<p align="center">
+  <img src="assets/screenshots/screensho-02.png" alt="Screenshot 1" width="800">
+  <img src="assets/screenshots/screensho-01.png" alt="Screenshot 2" width="800">
+  <img src="assets/screenshots/screensho-03.png" alt="Screenshot 3" width="800">
+  <img src="assets/screenshots/screensho-04.png" alt="Screenshot 4" width="800">
+</p>
 
 ## 🚀 Como Rodar
 Siga estas etapas para configurar e executar o projeto localmente.
