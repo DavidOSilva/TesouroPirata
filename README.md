@@ -70,7 +70,7 @@ def action(self, SharedChest, keyState):
 <p align="center">
   <img src="assets/screenshots/screenshot-02.png" alt="Screenshot 1" width="800">
   <img src="assets/screenshots/screenshot-01.png" alt="Screenshot 2" width="800">
-  <img src="assets/screenshots/screenshot-03.png" alt="Screenshot 3" width="800">
+  <img src="assets/screenshots/screenshot-03.gif" alt="Screenshot 3" width="800">
   <img src="assets/screenshots/screenshot-04.png" alt="Screenshot 4" width="800">
 </p>
 
