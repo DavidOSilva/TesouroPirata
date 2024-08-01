@@ -11,8 +11,7 @@ class TreasureFactory():
         treasureList = []
         for _ in range(numTreasures):
             x, y = self._getRandomPosition()
-            while any(self._isOverlapping(x, y, zone) for zone in self.exclusionZones):
-                x, y = self._getRandomPosition()
+            while any(self._isOverlapping(x, y, zone) for zone in self.exclusionZones): x, y = self._getRandomPosition()
             rarity = random.choices(values, weights=probas)[0]  # Exemplo de escolha de raridade
             treasure = Treasure(position=[x, y], rarity=rarity)
             self.exclusionZones.append(treasure.getRect())

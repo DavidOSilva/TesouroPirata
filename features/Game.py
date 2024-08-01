@@ -10,6 +10,7 @@ class Game():
         self.clock = pygame.time.Clock()
         self.win = pygame.display.set_mode((width, height))
         self.menuBackground = self._setMenuBackground()
+        self.lastTreasureSpawnTime = pygame.time.get_ticks()
 
     @staticmethod
     def _setMenuBackground(imagePath=Path("assets/background/menu.png"), width=stts.width, height=stts.height):
@@ -58,13 +59,24 @@ class Game():
             p1.move(keys)
             p2.move(keys)
 
-            #Coletando os tesouros.
-            p1.collect(treasures)
-            p2.collect(treasures)
+            # Coletando os tesouros.
+            collectedP1 = p1.collect(treasures)
+            collectedP2 = p2.collect(treasures)
+            
+            # Remover tesouros coletados da zona de exclusão.
+            for treasure in collectedP1 + collectedP2: exclusionZones.remove(treasure.getRect())
 
             #Depositar tesouros no baú.
             p1.action(treasureChest, keyState)
             p2.action(treasureChest, keyState)
+
+            # Gerar um novo tesouro dentro de um certo intervalo.
+            currentTime = pygame.time.get_ticks()
+            if currentTime - self.lastTreasureSpawnTime >= stts.treasureSpawnInterval:
+                newTreasures = TreasureFactory(exclusionZones).createTreasures(stts.treasureSpawnAmount)
+                treasures.extend(newTreasures)
+                exclusionZones.extend(treasure.getRect() for treasure in newTreasures)
+                self.lastTreasureSpawnTime = currentTime
 
             #Desenhando elementos na tela.
             self.win.fill(colors.sand) 

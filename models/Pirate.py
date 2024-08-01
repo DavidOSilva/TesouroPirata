@@ -59,6 +59,7 @@ class Pirate(ISpritesAnimatorGenerator):
                 self.position[1] += stts.playerSpeed
                 self.state = 'walkFoward'
             else: self.state = 'idle'
+        else: self.state = 'idle'
 
         # Atualiza a animação apenas se o estado mudou
         if self.state != previousState: self.frame = 0  # Reseta o frame quando o estado muda
@@ -75,11 +76,14 @@ class Pirate(ISpritesAnimatorGenerator):
         self.sprite = sprite
 
     def collect(self, treasures, capacity=stts.playerBackpackCapacity):
+        treasureCollected = []
         for treasure in treasures:
             treasureRect = treasure.getRect()
             if self.getRect().colliderect(treasureRect) and len(self.backpack) < capacity:
                 self.backpack.append(treasure)
+                treasureCollected.append(treasure)
                 treasures.remove(treasure)
+        return treasureCollected
 
     def _depositTreasure(self, SharedChest):
         print(f'O pirata {self.id} tentou acessar o báu da tripulação... 🏴‍☠️')
