@@ -7,6 +7,7 @@ class SharedChest(RectWithSprite):
     def __init__(self, position=stts.sharedChestPosition, size=stts.sharedChestSize):
         self.treasures = []
         self.lock = threading.Lock()
+        self.stop = threading.Event()
         self.inUse = False
         self.inUseWithoutTreasure = False
         super().__init__(position, size)

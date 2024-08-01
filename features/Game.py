@@ -7,6 +7,7 @@ class Game():
 
     def __init__(self, width=stts.width, height=stts.height):
         self.running = True
+        self.stopEvent = threading.Event()
         self.clock = pygame.time.Clock()
         self.win = pygame.display.set_mode((width, height))
         self.menuBackground = self._setMenuBackground()
@@ -97,5 +98,6 @@ class Game():
             if pygame.time.get_ticks() - startTime > stts.gameDuration:
                 print("Tempo de jogo acabou! ⌛❌")
                 treasureChest.determineWinner()
+                treasureChest.stop.set()
                 self.running = False
         

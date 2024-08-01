@@ -87,13 +87,14 @@ class Pirate(ISpritesAnimatorGenerator):
 
     def _depositTreasure(self, SharedChest):
         print(f'O pirata {self.id} tentou acessar o báu da tripulação... 🏴‍☠️')
-        if SharedChest.lock.acquire(timeout=1): # Tentar adquirir o lock com timeout de 1 segundo
+        if SharedChest.lock.acquire(timeout=0.5): # Tentar adquirir o lock com timeout de 1 segundo
             try:
                 SharedChest.inUse = True
                 print(f'O pirata {self.id} conseguiu abrir o baú. ✅')
                 if len(self.backpack) > 0:
                     for treasure in self.backpack:
                         time.sleep(stts.depositDuration/ 1000)
+                        if SharedChest.stop.is_set():  return # Verifique se o jogo acabou.
                         SharedChest.treasures.append((treasure, self.id))
                         print(f'O pirata {self.id} guardou no baú um tesouro de {treasure.identifyRarity()}')
                     self.backpack.clear()
@@ -106,7 +107,7 @@ class Pirate(ISpritesAnimatorGenerator):
                 SharedChest.lock.release()
                 SharedChest.inUse, SharedChest.inUseWithoutTreasure = False, False
                 self.cannotMove = False # Libera os movimentos.
-                print(f"O pirata {self.id} liberou o báu. 🔓")
+                if not SharedChest.stop.is_set():print(f"O pirata {self.id} liberou o báu. 🔓")
         else:
             SharedChest.inUse, SharedChest.inUseWithoutTreasure = False, False
             self.cannotMove = False # Libera os movimentos.
@@ -117,6 +118,6 @@ class Pirate(ISpritesAnimatorGenerator):
         if playerRect.colliderect(chestRect):
             if keyState[self.control.action] and not self.cannotMove:
                 self.cannotMove = True
-                threading.Thread(target=self._depositTreasure, args=(SharedChest,)).start()
+                threading.Thread(target=self._depositTreasure, args=(SharedChest, )).start()
 
              
