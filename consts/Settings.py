@@ -5,7 +5,7 @@ class Settings:
     def __init__(self):
         self.width = 1000
         self.height = int(self.width*0.5575)
-        self.gameDuration = 8 * 1000
+        self.gameDuration = 60 * 1000
         self.margin = 20
 
         self.playerSpeed = 7
