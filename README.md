@@ -21,35 +21,23 @@ O baú compartilhado está no centro do mapa. Para depositar tesouros, mova-se a
 - Se o baú estiver em uso, o jogador precisa esperar até que ele esteja disponível. ⛔
 
 ### Região Crítica e Condição de Corrida
-O baú compartilhado é uma região crítica onde apenas um pirata pode acessar por vez. Utilizei threading.Lock para evitar condições de corrida ao depositar tesouros. Se um pirata tentar acessar o baú enquanto ele está em uso, ele precisará esperar até que o baú seja liberado, você pode acompanhar o terminal com os logs para checar isso. Consulte `models/Pirate.py` para checar esta implementação:
+O baú compartilhado é uma região crítica onde apenas um pirata pode acessar por vez. Utilizei threading.Semaphore(1) para evitar condições de corrida ao depositar tesouros. Se um pirata tentar acessar o baú enquanto ele está em uso, ele precisará esperar até que o baú seja liberado, você pode acompanhar o terminal com os logs para checar isso. Consulte `models/Pirate.py` para checar em detalhes esta implementação:
 ```python
-    def _depositTreasure(self, SharedChest):
-        print(f'O pirata {self.id} tentou acessar o báu da tripulação... 🏴‍☠️')
-        if SharedChest.lock.acquire(timeout=0.5) and not SharedChest.stop.is_set(): # Tentar adquirir o lock com timeout de 1 segundo
-            try:
-                SharedChest.inUse = True
-                print(f'O pirata {self.id} conseguiu abrir o baú. ✅')
-                if len(self.backpack) > 0:
-                    for treasure in self.backpack:
-                        time.sleep(stts.depositDuration/ 1000)
-                        if SharedChest.stop.is_set():  return # Verifique se o jogo acabou.
-                        SharedChest.treasures.append((treasure, self.id))
-                        print(f'O pirata {self.id} guardou no baú um tesouro de {treasure.identifyRarity()}')
-                    self.backpack.clear()
-                else:
-                    SharedChest.inUseWithoutTreasure = True
-                    time.sleep((stts.depositDuration/3.5)/ 1000) # Segura um tempinho para animar a abertura do baú.
-                    if not SharedChest.stop.is_set(): print(f'O pirata {self.id} não tem nenhum tesouro, fechando baú... 🪙❓')
-                    return
-            finally:
-                SharedChest.lock.release()
-                SharedChest.inUse, SharedChest.inUseWithoutTreasure = False, False
-                self.cannotMove = False # Libera os movimentos.
-                if not SharedChest.stop.is_set(): print(f"O pirata {self.id} liberou o báu. 🔓")
-        else:
-            SharedChest.inUse, SharedChest.inUseWithoutTreasure = False, False
-            self.cannotMove = False # Libera os movimentos.
-            if not SharedChest.stop.is_set(): print(f'O pirata {self.id} não conseguiu abrir o baú e precisou aguardar. ⛔')
+def _depositTreasure(self, SharedChest): # Versão simplificada da função, sem considerar as opções de interface.
+    print(f'O pirata {self.id} tentou acessar o baú da tripulação... 🏴‍☠️')
+    if SharedChest.semaphore.acquire(timeout=0.5):  # Tentar adquirir o semáforo com timeout de 0.5 segundos
+        try:
+            print(f'O pirata {self.id} conseguiu abrir o baú. ✅')
+            for treasure in self.backpack: # Simula o depósito dos tesouros no baú
+                time.sleep(0.5)  # Simula o tempo de depósito
+                SharedChest.treasures.append((treasure, self.id))
+                print(f'O pirata {self.id} guardou no baú um tesouro de {treasure.identifyRarity()}')
+            self.backpack.clear()
+        finally:
+            SharedChest.semaphore.release()
+            print(f"O pirata {self.id} liberou o baú. 🔓")
+    else:
+        print(f'O pirata {self.id} não conseguiu abrir o baú e precisou aguardar. ⛔')
 
 def action(self, SharedChest, keyState):
     playerRect, chestRect = self.getRect(), SharedChest.getRect()

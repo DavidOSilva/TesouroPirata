@@ -6,7 +6,7 @@ class SharedChest(RectWithSprite):
 
     def __init__(self, position=stts.sharedChestPosition, size=stts.sharedChestSize):
         self.treasures = []
-        self.lock = threading.Lock()
+        self.semaphore = threading.Semaphore(1)
         self.stop = threading.Event()
         self.inUse = False
         self.inUseWithoutTreasure = False
@@ -25,6 +25,11 @@ class SharedChest(RectWithSprite):
             if playerID not in playerScores: playerScores[playerID] = 0
             playerScores[playerID] += treasure.rarity
         return playerScores
+    
+    def showTreasures(self): 
+        showcase = []
+        for treasure, id in self.treasures: showcase.append((treasure.identifyRarity(), id))
+        return showcase
     
     def determineWinner(self):
         scores = self._countTreasures()

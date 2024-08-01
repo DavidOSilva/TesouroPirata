@@ -86,15 +86,15 @@ class Pirate(ISpritesAnimatorGenerator):
         return treasureCollected
 
     def _depositTreasure(self, SharedChest):
-        print(f'O pirata {self.id} tentou acessar o báu da tripulação... 🏴‍☠️')
-        if SharedChest.lock.acquire(timeout=0.5) and not SharedChest.stop.is_set(): # Tentar adquirir o lock com timeout de 1 segundo
+        print(f'O pirata {self.id} tentou acessar o baú da tripulação... 🏴‍☠️')
+        if SharedChest.semaphore.acquire(timeout=0.5): # Tentar adquirir com timeout de 0.5 segundos
             try:
                 SharedChest.inUse = True
                 print(f'O pirata {self.id} conseguiu abrir o baú. ✅')
                 if len(self.backpack) > 0:
                     for treasure in self.backpack:
                         time.sleep(stts.depositDuration/ 1000)
-                        if SharedChest.stop.is_set():  return # Verifique se o jogo acabou.
+                        if SharedChest.stop.is_set():  return # Verifique se o tempo de jogo acabou.
                         SharedChest.treasures.append((treasure, self.id))
                         print(f'O pirata {self.id} guardou no baú um tesouro de {treasure.identifyRarity()}')
                     self.backpack.clear()
@@ -104,13 +104,13 @@ class Pirate(ISpritesAnimatorGenerator):
                     if not SharedChest.stop.is_set(): print(f'O pirata {self.id} não tem nenhum tesouro, fechando baú... 🪙❓')
                     return
             finally:
-                SharedChest.lock.release()
-                SharedChest.inUse, SharedChest.inUseWithoutTreasure = False, False
-                self.cannotMove = False # Libera os movimentos.
-                if not SharedChest.stop.is_set(): print(f"O pirata {self.id} liberou o báu. 🔓")
+                SharedChest.semaphore.release()
+                SharedChest.inUse, SharedChest.inUseWithoutTreasure, self.cannotMove = False, False, False # Libera movimentos e muda sprite do baú.
+                if not SharedChest.stop.is_set():
+                    print(f"O pirata {self.id} liberou o baú. 🔓")
+                    #print(f"Temos no baú de tesouros: {SharedChest.showTreasures()}")
         else:
-            SharedChest.inUse, SharedChest.inUseWithoutTreasure = False, False
-            self.cannotMove = False # Libera os movimentos.
+            self.cannotMove = False
             if not SharedChest.stop.is_set(): print(f'O pirata {self.id} não conseguiu abrir o baú e precisou aguardar. ⛔')
 
     def action(self, SharedChest, keyState):
