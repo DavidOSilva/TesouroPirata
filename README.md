@@ -23,9 +23,9 @@ O baú compartilhado está no centro do mapa. Para depositar tesouros, mova-se a
 ### Região Crítica e Condição de Corrida
 O baú compartilhado é uma região crítica onde apenas um pirata pode acessar por vez. Utilizei threading.Lock para evitar condições de corrida ao depositar tesouros. Se um pirata tentar acessar o baú enquanto ele está em uso, ele precisará esperar até que o baú seja liberado, você pode acompanhar o terminal com os logs para checar isso. Consulte `models/Pirate.py` para checar esta implementação:
 ```python
-def _depositTreasure(self, SharedChest):
+    def _depositTreasure(self, SharedChest):
         print(f'O pirata {self.id} tentou acessar o báu da tripulação... 🏴‍☠️')
-        if SharedChest.lock.acquire(timeout=0.5): # Tentar adquirir o lock com timeout de 1 segundo
+        if SharedChest.lock.acquire(timeout=0.5) and not SharedChest.stop.is_set(): # Tentar adquirir o lock com timeout de 1 segundo
             try:
                 SharedChest.inUse = True
                 print(f'O pirata {self.id} conseguiu abrir o baú. ✅')
@@ -39,18 +39,17 @@ def _depositTreasure(self, SharedChest):
                 else:
                     SharedChest.inUseWithoutTreasure = True
                     time.sleep((stts.depositDuration/3.5)/ 1000) # Segura um tempinho para animar a abertura do baú.
-                    print(f'O pirata {self.id} não tem nenhum tesouro, fechando baú... 🪙❓')
+                    if not SharedChest.stop.is_set(): print(f'O pirata {self.id} não tem nenhum tesouro, fechando baú... 🪙❓')
                     return
             finally:
                 SharedChest.lock.release()
                 SharedChest.inUse, SharedChest.inUseWithoutTreasure = False, False
                 self.cannotMove = False # Libera os movimentos.
-                if not SharedChest.stop.is_set():print(f"O pirata {self.id} liberou o báu. 🔓")
+                if not SharedChest.stop.is_set(): print(f"O pirata {self.id} liberou o báu. 🔓")
         else:
             SharedChest.inUse, SharedChest.inUseWithoutTreasure = False, False
             self.cannotMove = False # Libera os movimentos.
-            print(f'O pirata {self.id} não conseguiu abrir o baú e precisou aguardar. ⛔')
-        print(f'O pirata {self.id} não conseguiu abrir o baú e precisou aguardar. ⛔')
+            if not SharedChest.stop.is_set(): print(f'O pirata {self.id} não conseguiu abrir o baú e precisou aguardar. ⛔')
 
 def action(self, SharedChest, keyState):
     playerRect, chestRect = self.getRect(), SharedChest.getRect()
