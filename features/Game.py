@@ -1,6 +1,6 @@
 from models.Pirate import *
 from models.Chronometer import *
-from factory.TreasureFactory import *
+from factories.TreasureFactory import *
 from pathlib import Path
 
 class Game():
@@ -20,14 +20,15 @@ class Game():
 
     def showMenu(self):
         self.win.blit(self.menuBackground, (0, 0))
-        # menuText = RectText("Pressione ENTER para iniciar!", [stts.width // 2 - 0.2375*stts.width, stts.height // 2 - 20])
-        # menuText._draw(self.win)
         pygame.display.update()
 
     def reset(self):
         self.running = True
 
     def run(self):
+
+        print(f"\nA solução para sincronização de processos usada nessa partida é: {stts.synchMenchanism.capitalize()} ⚙️💻")
+
         #Instanciando jogadores.
         p1 = Pirate(1,
                     [stts.margin, stts.height//2 - stts.playerSize[1]//2],
@@ -98,6 +99,6 @@ class Game():
             if pygame.time.get_ticks() - startTime > stts.gameDuration:
                 print("Tempo de jogo acabou! ⌛❌")
                 treasureChest.determineWinner()
-                treasureChest.stop.set()
+                treasureChest.gameOver.set()
                 self.running = False
         

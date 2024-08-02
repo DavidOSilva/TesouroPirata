@@ -1,4 +1,5 @@
 from interfaces.ISpritesAnimatorGenerator import *
+from factories.SynchMechanismFactory import *
 from models.RectWithSprite import *
 from models.SharedChest import *
 from models.Treasure import *
@@ -23,6 +24,7 @@ class Pirate(ISpritesAnimatorGenerator):
         self.lastUpdate = pygame.time.get_ticks()
         self.spritesToAnimation = self._loadSpritesFromJson(Path(pngSprites), Path(jsonSheet))
         self.sprite = self.spritesToAnimation['idle'][0]
+        self.depositStrategy = SynchMechanismFactory().createDeposityStrategy()
 
     def getRect(self): return pygame.Rect(self.position[0], self.position[1], self.size[0], self.size[1])
 
@@ -85,33 +87,7 @@ class Pirate(ISpritesAnimatorGenerator):
                 treasures.remove(treasure)
         return treasureCollected
 
-    def _depositTreasure(self, SharedChest):
-        print(f'O pirata {self.id} tentou acessar o baú da tripulação... 🏴‍☠️')
-        if SharedChest.semaphore.acquire(timeout=0.5): # Tentar adquirir com timeout de 0.5 segundos
-            try:
-                SharedChest.inUse = True
-                print(f'O pirata {self.id} conseguiu abrir o baú. ✅')
-                if len(self.backpack) > 0:
-                    for treasure in self.backpack:
-                        time.sleep(stts.depositDuration/ 1000)
-                        if SharedChest.stop.is_set():  return # Verifique se o tempo de jogo acabou.
-                        SharedChest.treasures.append((treasure, self.id))
-                        print(f'O pirata {self.id} guardou no baú um tesouro de {treasure.identifyRarity()}')
-                    self.backpack.clear()
-                else:
-                    SharedChest.inUseWithoutTreasure = True
-                    time.sleep((stts.depositDuration/3.5)/ 1000) # Segura um tempinho para animar a abertura do baú.
-                    if not SharedChest.stop.is_set(): print(f'O pirata {self.id} não tem nenhum tesouro, fechando baú... 🪙❓')
-                    return
-            finally:
-                SharedChest.semaphore.release()
-                SharedChest.inUse, SharedChest.inUseWithoutTreasure, self.cannotMove = False, False, False # Libera movimentos e muda sprite do baú.
-                if not SharedChest.stop.is_set():
-                    print(f"O pirata {self.id} liberou o baú. 🔓")
-                    #print(f"Temos no baú de tesouros: {SharedChest.showTreasures()}")
-        else:
-            self.cannotMove = False
-            if not SharedChest.stop.is_set(): print(f'O pirata {self.id} não conseguiu abrir o baú e precisou aguardar. ⛔')
+    def _depositTreasure(self, SharedChest): self.depositStrategy.deposit(self, SharedChest)
 
     def action(self, SharedChest, keyState):
         playerRect, chestRect = self.getRect(), SharedChest.getRect()

@@ -6,7 +6,7 @@ Tesouro Pirata é um jogo divertido onde os jogadores controlam piratas que cole
 * Coleta de Tesouros: Pegue os tesouros espalhados pelo mapa.
 * Depósito no Baú: Deposite os tesouros coletados no baú compartilhado.
 * Sistema de Animação: Animações suaves para movimentos dos piratas.
-* Multijogador Local: Jogue com um amigo no mesmo teclado.
+* Surgimento Tesouros: Novos tesouros vão surgindo ao longo da partida em posições aleatórias.
 
 ## ⚙️ Mecânicas do Jogo
 ### Coleta de Tesouros
@@ -21,30 +21,75 @@ O baú compartilhado está no centro do mapa. Para depositar tesouros, mova-se a
 - Se o baú estiver em uso, o jogador precisa esperar até que ele esteja disponível. ⛔
 
 ### Região Crítica e Condição de Corrida
-O baú compartilhado é uma região crítica onde apenas um pirata pode acessar por vez. Utilizei threading.Semaphore(1) para evitar condições de corrida ao depositar tesouros. Se um pirata tentar acessar o baú enquanto ele está em uso, ele precisará esperar até que o baú seja liberado, você pode acompanhar o terminal com os logs para checar isso. Consulte `models/Pirate.py` para checar em detalhes esta implementação:
-```python
-def _depositTreasure(self, SharedChest): # Versão simplificada da função, sem considerar as opções de interface.
-    print(f'O pirata {self.id} tentou acessar o baú da tripulação... 🏴‍☠️')
-    if SharedChest.semaphore.acquire(timeout=0.5):  # Tentar adquirir o semáforo com timeout de 0.5 segundos
-        try:
-            print(f'O pirata {self.id} conseguiu abrir o baú. ✅')
-            for treasure in self.backpack: # Simula o depósito dos tesouros no baú
-                time.sleep(0.5)  # Simula o tempo de depósito
-                SharedChest.treasures.append((treasure, self.id))
-                print(f'O pirata {self.id} guardou no baú um tesouro de {treasure.identifyRarity()}')
-            self.backpack.clear()
-        finally:
-            SharedChest.semaphore.release()
-            print(f"O pirata {self.id} liberou o baú. 🔓")
-    else:
-        print(f'O pirata {self.id} não conseguiu abrir o baú e precisou aguardar. ⛔')
+O baú de tesouros da tripulação é uma região crítica onde apenas um pirata pode acessar por vez. Para evitar condições de corrida, utilizei o padrão Strategy para implementar diferentes mecanismos de sincronização de processos. Os mecanismos de sincronização atualmente disponíveis são: Semaphore e Lock. Dependendo da configuração, o comportamento da sincronização varia:
+* Semaphore: 
+    Foi utilizado threading.Condition para implementar um semáforo que controla o acesso ao baú. Se um pirata tentar acessar o baú enquanto ele está em uso, ele precisa esperar até que o semáforo seja liberado. Seus movimentos ficam bloqueados até que sua vez chegue.
+*Lock:
+    Neste caso foi utilizado o threading.Lock para garantir que apenas um pirata possa acessar o baú por vez. Se o pirata não conseguir adquirir o lock, ele imprime uma mensagem informando que o baú está ocupado e ele é livre para se movimentar e tentar novamente em um outro momento.
+Você pode alterar o comportamento de sincronização através do arquivo `consts/settings.py`, que seleciona a estratégia apropriada com base nas configurações fornecidas. Abaixo você pode visualizar a implementação dos mecanismo de sincronização utilizados nesse projeto até o momento. As classes estão disponíveis em `strategies/synchronizations/`.
 
-def action(self, SharedChest, keyState):
-    playerRect, chestRect = self.getRect(), SharedChest.getRect()
-    if playerRect.colliderect(chestRect):
-        if keyState[self.control.action] and not self.cannotMove:
-            self.cannotMove = True
-            threading.Thread(target=self._depositTreasure, args=(SharedChest,)).start()
+```python
+class Semaphore(ISynchMechanism):
+    def __init__(self, value = 1):
+        self.value = value # Determina o número máximo de threads que podem acessar a seção crítica simultaneamente.
+        self.condition = threading.Condition()
+    
+    def acquire(self):
+        with self.condition: # Método para uma thread esperar para entrar na seção crítica.
+            while self.value <= 0: self.condition.wait() # Se o valor for 0 ou menor, a thread espera.
+            self.value -= 1 # Decrementa o valor e permite que a thread prossiga.
+    
+    def release(self):
+        with self.condition:  # Método para uma thread sinalizar que está saindo da seção crítica
+            self.value += 1  # Incrementa o valor e notifica uma das threads que estão esperando
+            self.condition.notify()
+
+class Lock(ISynchMechanism):
+    def __init__(self):
+        self.lock = threading.Lock()
+
+    def acquire(self, timeout=0.5):
+        return self.lock.acquire(timeout=timeout) # O timeout é o tempo máximo em segundos para tentar adquirir o lock.
+
+    def release(self):
+        self.lock.release() # Libera o lock adquirido.
+```
+Cada Thread chama a mesma função dentro da classe Pirate, mas a função em si pode variar de acordo com a solução escolhida durante a execução do código. A ideia por trás dessa abordagem é facilitar a manutenção e a extensão do código a medida que novas implementações de solução para a condição de corrida são adicionadas. Consulte `models/Pirate.py` para mais detalhes.
+
+```python
+
+    class Pirate(ISpritesAnimatorGenerator):
+    
+    def __init__(self, id, position, pngSprites, jsonSheet=Path("assets/pirate/pirateSpritesSheet.json"), size=stts.playerSize, state='idle', frame=0):
+    # Outras inicializações...
+    self.depositStrategy = SynchMechanismFactory().createDeposityStrategy()
+
+    # Restante do código...
+
+    def _depositTreasure(self, SharedChest): self.depositStrategy.deposit(self, SharedChest)
+
+    def action(self, SharedChest, keyState):
+        playerRect, chestRect = self.getRect(), SharedChest.getRect()
+        if playerRect.colliderect(chestRect):
+            if keyState[self.control.action] and not self.cannotMove:
+                self.cannotMove = True
+                threading.Thread(target=self._depositTreasure, args=(SharedChest, )).start()
+```
+A fábrica é a classe que vai definir qual função será chamada para depositar os tesouros e qual o mecanismo de sincronização foi adotado, permitindo adquirir ou liberar a região crítica. Veja o código completo em `factories/SynchMechanismFactory.py`.
+```python
+class SynchMechanismFactory:
+
+    def __init__(self, mechanism=stts.synchMenchanism.lower()): self.mechanism = mechanism
+
+    def createSynchMechanism(self) -> ISynchMechanism:
+        if self.mechanism == "semaphore":  return Semaphore()
+        elif self.mechanism == "lock": return Lock()
+        else: raise ValueError(f"Mecanismo de sincronização de processos inválido: {self.mechanism}")
+
+    def createDeposityStrategy(self) ->  IDepositStrategy:
+        if self.mechanism == "semaphore":  return SemaphoreDeposit()
+        elif self.mechanism == "lock": return LockDeposit()
+        else: raise ValueError(f"Mecanismo de sincronização de processos inválido: {self.mechanism}")
 ```
 
 ## ⌨️ Controles

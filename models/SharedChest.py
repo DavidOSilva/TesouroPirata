@@ -1,13 +1,15 @@
 from models.RectWithSprite import *
+from factories.SynchMechanismFactory import *
 from consts.Settings import *
 import threading
+import time
 
 class SharedChest(RectWithSprite):
 
     def __init__(self, position=stts.sharedChestPosition, size=stts.sharedChestSize):
         self.treasures = []
-        self.semaphore = threading.Semaphore(1)
-        self.stop = threading.Event()
+        self.synchMechanism = SynchMechanismFactory().createSynchMechanism()
+        self.gameOver = threading.Event()
         self.inUse = False
         self.inUseWithoutTreasure = False
         super().__init__(position, size)
@@ -25,6 +27,16 @@ class SharedChest(RectWithSprite):
             if playerID not in playerScores: playerScores[playerID] = 0
             playerScores[playerID] += treasure.rarity
         return playerScores
+    
+    def addTreasure(self, pirate, waitTime=stts.depositDuration):
+        currTreasures = self.treasures.copy()
+        for treasure in pirate.backpack:
+            time.sleep(waitTime/1000) # Em segundos.
+            if self.gameOver.is_set():  return
+            currTreasures.append((treasure, pirate.id))
+            print(f'O pirata {pirate.id} guardou no baú um tesouro de {treasure.identifyRarity()}')
+        pirate.backpack = []
+        self.treasures = currTreasures
     
     def showTreasures(self): 
         showcase = []
