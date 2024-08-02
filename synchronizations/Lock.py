@@ -1,7 +1,6 @@
-from interfaces.ISynchMechanism import *
 import threading
 
-class Lock(ISynchMechanism):
+class Lock():
     def __init__(self):
         self.lock = threading.Lock()
 

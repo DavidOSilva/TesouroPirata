@@ -29,22 +29,22 @@ O baú de tesouros da tripulação é uma região crítica onde apenas um pirata
 Você pode alterar o comportamento de sincronização através do arquivo `consts/settings.py`, que seleciona a estratégia apropriada com base nas configurações fornecidas. Abaixo você pode visualizar a implementação dos mecanismo de sincronização utilizados nesse projeto até o momento. As classes estão disponíveis em `strategies/synchronizations/`.
 
 ```python
-class Semaphore(ISynchMechanism):
+class Semaphore():
     def __init__(self, value = 1):
         self.value = value # Determina o número máximo de threads que podem acessar a seção crítica simultaneamente.
         self.condition = threading.Condition()
     
-    def acquire(self):
+    def down(self):
         with self.condition: # Método para uma thread esperar para entrar na seção crítica.
             while self.value <= 0: self.condition.wait() # Se o valor for 0 ou menor, a thread espera.
             self.value -= 1 # Decrementa o valor e permite que a thread prossiga.
     
-    def release(self):
+    def up(self):
         with self.condition:  # Método para uma thread sinalizar que está saindo da seção crítica
             self.value += 1  # Incrementa o valor e notifica uma das threads que estão esperando
             self.condition.notify()
 
-class Lock(ISynchMechanism):
+class Lock():
     def __init__(self):
         self.lock = threading.Lock()
 
@@ -81,7 +81,7 @@ class SynchMechanismFactory:
 
     def __init__(self, mechanism=stts.synchMenchanism.lower()): self.mechanism = mechanism
 
-    def createSynchMechanism(self) -> ISynchMechanism:
+    def createSynchMechanism(self):
         if self.mechanism == "semaphore":  return Semaphore()
         elif self.mechanism == "lock": return Lock()
         else: raise ValueError(f"Mecanismo de sincronização de processos inválido: {self.mechanism}")
@@ -167,7 +167,8 @@ class Settings:
 * `consts/`: Contém constantes e configurações do jogo.
 * `assets/`: Contém imagens e outros recursos do jogo.
 * `factories/`: Contém as fábricas que criam instâncias de estratégias e mecanismos de sincronização.
-* `strategies/`: Contém as implementações das estratégias de sincronização e depósito.
+* `strategies/`: Contém as implementações das estratégias de depósito.
+* `synchronizations/`: Contém as funções que serão chamadas pela Thread dependendo de qual abordagem foi escolhida.
 
 ## 📜 Licença
 Distribuído sob a licença MIT. Veja LICENSE para mais informações.

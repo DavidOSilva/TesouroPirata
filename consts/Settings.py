@@ -7,7 +7,7 @@ class Settings:
         self.height = int(self.width*0.5575)
         self.gameDuration = 60 * 1000
         self.margin = 20
-        self.synchMenchanism = "lock"
+        self.synchMenchanism = "semaphore"
 
         self.playerSpeed = 7
         self.playerSize = [52, 75]

@@ -20,8 +20,8 @@ class LockDeposit(IDepositStrategy):
                 SharedChest.synchMechanism.release()
                 SharedChest.inUse, SharedChest.inUseWithoutTreasure, Pirate.cannotMove = False, False, False
                 if not SharedChest.gameOver.is_set():
+                    print(f"O pirata {Pirate.id} viu os seguintes tesouros no baú: {SharedChest.showTreasures()} 💍")
                     print(f"O pirata {Pirate.id} liberou o baú. 🔓")
-                    #print(f"Tesouros depositados no baú: {SharedChest.showTreasures()} 💍")
         else:
             Pirate.cannotMove = False
             if not SharedChest.gameOver.is_set():

@@ -9,3 +9,7 @@ class ISynchMechanism(ABC):
     @abstractmethod
     def release(self):
         pass
+
+    @abstractmethod
+    def wait(self):
+        pass
