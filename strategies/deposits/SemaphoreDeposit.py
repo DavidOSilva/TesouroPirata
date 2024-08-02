@@ -20,4 +20,4 @@ class SemaphoreDeposit(IDepositStrategy):
             SharedChest.inUse, SharedChest.inUseWithoutTreasure, Pirate.cannotMove = False, False, False  # Libera movimentos e muda sprite do baú.
             if not SharedChest.gameOver.is_set():
                 print(f"O pirata {Pirate.id} liberou o baú. 🔓")
-                print(f"Tesouros depositados no baú: {SharedChest.showTreasures()} 💍")
+                #print(f"Tesouros depositados no baú: {SharedChest.showTreasures()} 💍")

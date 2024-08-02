@@ -108,7 +108,7 @@ class SynchMechanismFactory:
   <img src="assets/screenshots/screenshot-04.png" alt="Screenshot 4" width="800">
 </p>
 
-## 🚀 Como Rodar
+## 🚀 Como rodar Tesouro Pirata na sua máquina.
 Siga estas etapas para configurar e executar o projeto localmente.
 
 ### Pré-requisitos
@@ -132,12 +132,42 @@ cd TesouroPirata
 python main.py
 ```
 
+## 🎛️ Alterar configurações do Jogo.
+Como já foi mencionado, você pode acessar o arquivo `consts/settings.py` e fazer algumas alterações, como: tempo da partida, número de tesouros gerados, tempo de geração dos tesouros, velocidade do jogador, capacidade da mochila, tamanho da tela etc.
+```python
+class Settings:
+    def __init__(self):
+        self.width = 1000
+        self.height = int(self.width*0.5575)
+        self.gameDuration = 60 * 1000
+        self.margin = 20
+        self.synchMenchanism = "lock"
+
+        self.playerSpeed = 7
+        self.playerSize = [52, 75]
+        self.playerBackpackCapacity = 3
+        self.playerAnimationFrameRate = 10
+
+        self.treasureSize = [30, 34]
+        self.treasureValues = [1, 3, 5]
+        self.treasureProbas = [0.5, 0.35, 0.15]
+        self.treasureNumMax = 15
+        self.treasureSpawnInterval = 4 * 1000 
+        self.treasureSpawnAmount = 2
+
+        self.sharedChestSize = [54, 54]
+        self.sharedChestPosition = self.width // 2 - self.sharedChestSize[0] // 2, self.height // 2 - self.sharedChestSize[1] // 2
+        self.depositDuration = 1.2 * 1000
+```
+
 ## 🗂️ Estrutura do Projeto
 * `main.py`: Arquivo principal para iniciar o jogo.
 * `models/`: Contém as classes principais do jogo, como Pirate, SharedChest e Treasure.
 * `interfaces/`: Contém as interfaces usadas no projeto.
 * `consts/`: Contém constantes e configurações do jogo.
 * `assets/`: Contém imagens e outros recursos do jogo.
+* `factories/`: Contém as fábricas que criam instâncias de estratégias e mecanismos de sincronização.
+* `strategies/`: Contém as implementações das estratégias de sincronização e depósito.
 
 ## 📜 Licença
 Distribuído sob a licença MIT. Veja LICENSE para mais informações.
