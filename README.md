@@ -167,8 +167,8 @@ class Settings:
 * `consts/`: Contém constantes e configurações do jogo.
 * `assets/`: Contém imagens e outros recursos do jogo.
 * `factories/`: Contém as fábricas que criam instâncias de estratégias e mecanismos de sincronização.
-* `strategies/`: Contém as implementações das estratégias de depósito.
-* `synchronizations/`: Contém as funções que serão chamadas pela Thread dependendo de qual abordagem foi escolhida.
+* `strategies/`:  Contém as funções que serão chamadas pelas thread dependendo de qual abordagem foi escolhida.
+* `synchronizations/`: Contém as implementações das soluções de condição de corrida.
 
 ## 📜 Licença
 Distribuído sob a licença MIT. Veja LICENSE para mais informações.
