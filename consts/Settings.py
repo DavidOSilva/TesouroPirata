@@ -8,7 +8,7 @@ class Settings:
         self.margin = 20
         self.gameDuration = 60 * 1000
         self.synchMenchanism = "lock"
-        self.isTest = False
+        self.isTest = True
         self.seed = 58
 
         self.playerSpeed = 7
