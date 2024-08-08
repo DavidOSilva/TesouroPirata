@@ -5,9 +5,11 @@ class Settings:
     def __init__(self):
         self.width = 1000
         self.height = int(self.width*0.5575)
-        self.gameDuration = 60 * 1000
         self.margin = 20
-        self.synchMenchanism = "semaphore"
+        self.gameDuration = 60 * 1000
+        self.synchMenchanism = "lock"
+        self.isTest = False
+        self.seed = 58
 
         self.playerSpeed = 7
         self.playerSize = [52, 75]

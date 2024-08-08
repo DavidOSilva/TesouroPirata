@@ -7,8 +7,9 @@ class TreasureFactory():
     def __init__(self, exclusionZones=[]):
         self.exclusionZones = exclusionZones
 
-    def createTreasures(self, numTreasures=stts.treasureNumMax, probas=stts.treasureProbas, values=stts.treasureValues):
+    def createTreasures(self, numTreasures=stts.treasureNumMax, probas=stts.treasureProbas, values=stts.treasureValues, isTest=stts.isTest):
         treasureList = []
+        if isTest: random.seed(stts.seed) # Fixar a seed para testes, assim todo jogo será o mesmo.
         for _ in range(numTreasures):
             x, y = self._getRandomPosition()
             while any(self._isOverlapping(x, y, zone) for zone in self.exclusionZones): x, y = self._getRandomPosition()
@@ -20,9 +21,9 @@ class TreasureFactory():
         
     @staticmethod
     def _getRandomPosition():
-            x = random.randint(stts.margin, stts.width - stts.treasureSize[0] - stts.margin)
-            y = random.randint(stts.margin, stts.height - stts.treasureSize[1] - stts.margin)
-            return x, y
+        x = random.randint(stts.margin, stts.width - stts.treasureSize[0] - stts.margin)
+        y = random.randint(stts.margin, stts.height - stts.treasureSize[1] - stts.margin)
+        return x, y
     
     @staticmethod
     def _isOverlapping(x, y, zone, treasureSize=stts.treasureSize):

@@ -1,6 +1,6 @@
 import threading
 
-class Semaphore():
+class Semaphore:
     def __init__(self, value = 1):
         self.value = value # Determina o número máximo de threads que podem acessar a seção crítica simultaneamente.
         self.condition = threading.Condition()

@@ -1,4 +1,5 @@
 import pygame
+from consts.Settings import *
 
 class ControlKeys:
 
@@ -11,7 +12,7 @@ class ControlKeys:
         self.action = self.control['action']
 
     @staticmethod
-    def _createControlKeys(playerId):
+    def _createControlKeys(playerId, testMode=stts.isTest):
         control = {} 
         if playerId==1:
             control = {
@@ -29,4 +30,5 @@ class ControlKeys:
                 'down': pygame.K_DOWN,
                 'action': pygame.K_KP0,
         }
+        if testMode: control['action'] = pygame.K_SPACE
         return control

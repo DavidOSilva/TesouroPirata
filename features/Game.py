@@ -27,7 +27,10 @@ class Game():
 
     def run(self):
 
+        self.lastTreasureSpawnTime = pygame.time.get_ticks() # Ultimo instante que um novo tesouro foi gerado.
+
         print(f"\nA solução para sincronização de processos usada nessa partida é: {stts.synchMenchanism.capitalize()} ⚙️💻")
+        if stts.isTest: print("O jogo foi iniciado no modo de teste, a tecla de ação para ambos os piratas é o ESPAÇO ⚠️🕹️")
 
         #Instanciando jogadores.
         p1 = Pirate(1,
@@ -39,10 +42,11 @@ class Game():
         
         #Instancindo baú de tesouros compartilhados.
         treasureChest = SharedChest()
-        
+
         #Instanciando cada um dos tesouros.
         exclusionZones = [p1.getRect(), p2.getRect(), treasureChest.getRect()]
         treasures = TreasureFactory(exclusionZones).createTreasures()
+        exclusionZones.extend(treasure.getRect() for treasure in treasures) # Adiciona os novos tesouros nas zonas de exclusão.
 
         #Contagem iniciada.
         startTime = pygame.time.get_ticks()
@@ -97,8 +101,10 @@ class Game():
             pygame.display.update()
 
             if pygame.time.get_ticks() - startTime > stts.gameDuration:
-                print("Tempo de jogo acabou! ⌛❌")
-                treasureChest.determineWinner()
                 treasureChest.gameOver.set()
                 self.running = False
+                print("Fim de jogo! ⌛❌")
+                print(f"Tempo de espera total gasto: {round(treasureChest.totalWaitTime, 2)}s ⏲️")
+                treasureChest.showScoreboard()
+                treasureChest.determineWinner()
         

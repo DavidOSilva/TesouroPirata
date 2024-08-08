@@ -1,6 +1,6 @@
 import threading
 
-class Lock():
+class Lock:
     def __init__(self):
         self.lock = threading.Lock()
 

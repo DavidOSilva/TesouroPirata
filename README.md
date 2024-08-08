@@ -21,12 +21,14 @@ O baú compartilhado está no centro do mapa. Para depositar tesouros, mova-se a
 - Se o baú estiver em uso, o jogador precisa esperar até que ele esteja disponível. ⛔
 
 ### Região Crítica e Condição de Corrida
-O baú de tesouros da tripulação é uma região crítica onde apenas um pirata pode acessar por vez. Para evitar condições de corrida, utilizei o padrão Strategy para implementar diferentes mecanismos de sincronização de processos. Os mecanismos de sincronização atualmente disponíveis são: Semaphore e Lock. Dependendo da configuração, o comportamento da sincronização varia:
+O baú de tesouros da tripulação é uma região crítica onde apenas um pirata pode acessar por vez. Para evitar condições de corrida, utilizei o padrão Strategy para implementar diferentes mecanismos de sincronização de processos. Os mecanismos de sincronização atualmente disponíveis são: Semaphore, Lock e Monitor. Dependendo da configuração, o comportamento da sincronização varia:
 * Semaphore: 
     Foi utilizado threading.Condition para implementar um semáforo que controla o acesso ao baú. Se um pirata tentar acessar o baú enquanto ele está em uso, ele precisa esperar até que o semáforo seja liberado. Seus movimentos ficam bloqueados até que sua vez chegue.
 *Lock:
-    Neste caso foi utilizado o threading.Lock para garantir que apenas um pirata possa acessar o baú por vez. Se o pirata não conseguir adquirir o lock, ele imprime uma mensagem informando que o baú está ocupado e ele é livre para se movimentar e tentar novamente em um outro momento.
-Você pode alterar o comportamento de sincronização através do arquivo `consts/settings.py`, que seleciona a estratégia apropriada com base nas configurações fornecidas. Abaixo você pode visualizar a implementação dos mecanismo de sincronização utilizados nesse projeto até o momento. As classes estão disponíveis em `strategies/synchronizations/`.
+    Neste caso foi utilizado o threading.Lock para garantir que apenas um pirata possa acessar o baú por vez. Se o pirata não conseguir adquirir o lock, ele imprime uma mensagem informando que o baú está ocupado e ele espera sua vez para depositar os tesouros. Seus movimentos também são travados.
+*Monitor:
+    Utiliza um mecanismo de monitor manualmente implementado para gerenciar o acesso ao baú. Utilizei uma combinação de threading.Lock e threading.Condition para gerenciar a exclusão mútua e a coordenação entre threads. Se o baú estiver em uso, o pirata também precisa aguardar parado até que ele seja liberado. 
+Você pode alterar o comportamento de sincronização através do arquivo `consts/settings.py`, que seleciona a estratégia apropriada com base nas configurações fornecidas. Durante o tempo quem um dos piratas espera para acessar o baú, um cronômetro interno é iniciado, a ideia é comparar o desempenho de cada solução da condição de corrida. Um modo de teste foi desenvolvido para medir o desempenho das soluções de condição de corrida adotadas. Neste modo, o botão de ação de ambos os jogadores passam a ser o mesmo, o que elimina a possibilidade de erro humano ao pressionar os botões de ação de ambos os piratas em diferentes intervalos de tempo, o que comprometeria o tempo acumulado. Além disso, neste modo as posições em que os tesouros são gerados são sempre as mesmas em cada nova partida. Ainda nesse sentido, observei que, para essa implementaçã, o uso de Lock oferece um tempo mais baixo e portanto um melhor desempenho. Abaixo você pode visualizar a implementação dos mecanismos de sincronização utilizados nesse projeto até o momento. As classes estão disponíveis em `strategies/synchronizations/`.
 
 ```python
 class Semaphore():
@@ -53,9 +55,25 @@ class Lock():
 
     def release(self):
         self.lock.release() # Libera o lock adquirido.
+
+class Monitor:
+    def __init__(self):
+        self.lock = threading.Lock() # Inicializa um lock e uma condição com o lock
+        self.condition = threading.Condition(self.lock)
+        self.inUse = False  # Indica se o recurso está em uso
+
+    def enter(self):
+        with self.lock: # Adquire o lock antes de acessar a seção crítica
+            while self.inUse: # Espera até que o recurso não esteja mais em uso
+                self.condition.wait()
+            self.inUse = True  # Marca o recurso como em uso
+
+    def leave(self):
+        with self.lock:
+            self.inUse = False  # Libera o recurso
+            self.condition.notify_all()  # Notifica todas as threads esperando na condição
 ```
 Cada Thread chama a mesma função dentro da classe Pirate, mas a função em si pode variar de acordo com a solução escolhida durante a execução do código. A ideia por trás dessa abordagem é facilitar a manutenção e a extensão do código a medida que novas implementações de solução para a condição de corrida são adicionadas. Consulte `models/Pirate.py` para mais detalhes.
-
 ```python
 
     class Pirate(ISpritesAnimatorGenerator):
@@ -84,11 +102,13 @@ class SynchMechanismFactory:
     def createSynchMechanism(self):
         if self.mechanism == "semaphore":  return Semaphore()
         elif self.mechanism == "lock": return Lock()
+        elif self.mechanism == "monitor": return Monitor()
         else: raise ValueError(f"Mecanismo de sincronização de processos inválido: {self.mechanism}")
 
     def createDeposityStrategy(self) ->  IDepositStrategy:
         if self.mechanism == "semaphore":  return SemaphoreDeposit()
         elif self.mechanism == "lock": return LockDeposit()
+        elif self.mechanism == "monitor": return MonitorDeposit()
         else: raise ValueError(f"Mecanismo de sincronização de processos inválido: {self.mechanism}")
 ```
 
@@ -139,9 +159,11 @@ class Settings:
     def __init__(self):
         self.width = 1000
         self.height = int(self.width*0.5575)
-        self.gameDuration = 60 * 1000
         self.margin = 20
+        self.gameDuration = 60 * 1000
         self.synchMenchanism = "lock"
+        self.isTest = False
+        self.seed = 58
 
         self.playerSpeed = 7
         self.playerSize = [52, 75]
@@ -152,7 +174,7 @@ class Settings:
         self.treasureValues = [1, 3, 5]
         self.treasureProbas = [0.5, 0.35, 0.15]
         self.treasureNumMax = 15
-        self.treasureSpawnInterval = 4 * 1000 
+        self.treasureSpawnInterval = 5 * 1000 
         self.treasureSpawnAmount = 2
 
         self.sharedChestSize = [54, 54]
