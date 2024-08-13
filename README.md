@@ -1,7 +1,13 @@
 # 🏴‍☠️ Tesouro Pirata 🏴‍☠️
 Tesouro Pirata é um jogo divertido onde os jogadores controlam piratas que coletam tesouros e os depositam em um baú da tripulação que é compartilhado. O objetivo é coletar o máximo de tesouros possível antes que o tempo acabe. O jogador com mais pontos vence!
 
-## Funcionalidades
+## 📽️ Apresentação do Projeto
+Confira a apresentação do projeto em vídeo abaixo:
+[![Assistir Apresentação](assets/screenshots/videoframe.png)](https://drive.google.com/file/d/1vxdSUzatG8Mjl8uo0tbZkErt74H7_JPd/)
+
+Este vídeo fornece uma visão geral detalhada das funcionalidades e objetivos do projeto. É uma ótima maneira de entender o que estamos tentando alcançar e como você pode se envolver. Se você tiver algum problema para assistir ao vídeo ou precisar de mais informações, não hesite em entrar em contato!
+
+## 🕹️ Funcionalidades
 * Movimentação do Jogador: Controle ambos os piratas usando o mesmo teclado.
 * Coleta de Tesouros: Pegue os tesouros espalhados pelo mapa.
 * Depósito no Baú: Deposite os tesouros coletados no baú compartilhado.
@@ -9,18 +15,18 @@ Tesouro Pirata é um jogo divertido onde os jogadores controlam piratas que cole
 * Surgimento Tesouros: Novos tesouros vão surgindo ao longo da partida em posições aleatórias.
 
 ## ⚙️ Mecânicas do Jogo
-### Coleta de Tesouros
+### 💎 Coleta de Tesouros
 Cada jogador pode carregar até 3 tesouros na mochila. Para coletar um tesouro, basta se mover sobre ele. Os tesouros aparecem aleatoriamente pelo mapa e podem ser de três tipos:
 - 🥉 Bronze: 1 ponto
 - 🥈 Prata: 3 pontos
 - 🥇 Ouro: 5 pontos
 
-### Depósito no Baú
+### 💼 Depósito no Baú
 O baú compartilhado está no centro do mapa. Para depositar tesouros, mova-se até o baú e pressione a tecla de ação (F para Jogador 1, 0 para Jogador 2). Porém existe algumas coisas que o jogador precisa levar em conta:
 - Se o baú estiver disponível, o jogador pode depositar os seus tesouros, caso ele tenha coletado algum, e ganhar os pontos. ✅
 - Se o baú estiver em uso, o jogador precisa esperar até que ele esteja disponível. ⛔
 
-### Região Crítica e Condição de Corrida
+### 🏁 Região Crítica e Condição de Corrida
 O baú de tesouros da tripulação é uma região crítica onde apenas um pirata pode acessar por vez. Para evitar condições de corrida, utilizei o padrão Strategy para implementar diferentes mecanismos de sincronização de processos. Os mecanismos de sincronização atualmente disponíveis são: Semaphore, Lock e Monitor. Dependendo da configuração, o comportamento da sincronização varia:
 
 - **Semaphore**: 
@@ -198,5 +204,4 @@ Distribuído sob a licença MIT. Veja LICENSE para mais informações.
 
 ## 📬 Contato
 David Oliveira Silva - @DavidOSilva - davidoliveirasilvaa@gmail.com
-
 Link do Projeto: https://github.com/DavidOSilva/TesouroPirata
